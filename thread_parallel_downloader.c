@@ -26,38 +26,38 @@ int cnt;
 void progress(){ //display current progress
 	static int pos = 0;
 	static char mark[] = {'-','\\','|','/'};
-    int k = 0;
+	int k = 0;
 	for(int i = 0; i < 1000000; ++i) {
-        k = 0;
-        clear();
-        for(int j = 0; j < cnt; j++){
-            mvprintw(3 * j, 0, "\r%s", c[j]);
-            if(f[j] == 1) mvprintw(3 * j + 1, 0, "\r%c", mark[pos]);
-            else{
-                mvprintw(3 * j + 1, 0, "\r%s", "finishedddd!");
-                k++;
-            }
-        }
+		k = 0;
+		clear();
+		for(int j = 0; j < cnt; j++){
+			mvprintw(3 * j, 0, "\r%s", c[j]);
+			if(f[j] == 1) mvprintw(3 * j + 1, 0, "\r%c", mark[pos]);
+			else{
+				mvprintw(3 * j + 1, 0, "\r%s", "Finished!");
+				k++;
+			}
+		}
 		refresh();
 		pos = (pos + 1) % sizeof(mark);
 		usleep(100000);
-        if(k == cnt) pthread_exit((void *) 0);
+		if(k == cnt) pthread_exit((void *) 0);
 	}
 }
 
 int http_spliturl(char* url, char* host, char* path, char* filename, unsigned short* port){
-    char *p, host_path[URL_LEN];
-    if ( strlen(url) > URL_LEN-1 ) {
+	char *p, host_path[URL_LEN];
+	if ( strlen(url) > URL_LEN-1 ) {
 		endwin();
-        perror("URL is too long\n");
+		perror("URL is too long\n");
 		exit(EXIT_FAILURE);
     }
-    if ( strstr(url, "http://") && sscanf(url, "http://%s", host_path) ) {
-        if ( (p = strchr(host_path,'/')) != NULL ) {
-            strcpy(path,p); *p = '\0'; strcpy(host,host_path);
-        } else {
-            strcpy(host,host_path);
-        }
+	if ( strstr(url, "http://") && sscanf(url, "http://%s", host_path) ) {
+		if ( (p = strchr(host_path,'/')) != NULL ) {
+			strcpy(path,p); *p = '\0'; strcpy(host,host_path);
+		} else {
+			strcpy(host,host_path);
+		}
 
 		p = strrchr(path, '/');
 		if(p != NULL) {
@@ -66,16 +66,16 @@ int http_spliturl(char* url, char* host, char* path, char* filename, unsigned sh
 			strcpy(filename, path);
 		}
 
-        if ( (p = strchr(host,':')) != NULL ) {
-            *port = atoi(p+1);
-            *p = '\0';
-        }
+		if ( (p = strchr(host,':')) != NULL ) {
+			*port = atoi(p+1);
+			*p = '\0';
+		}
         if ( *port <= 0 ) *port = 80;
     } else {
 		endwin();
-        perror("URL has to be begun with http://\n");
-        exit(EXIT_FAILURE);
-    }
+		perror("URL has to be begun with http://\n");
+		exit(EXIT_FAILURE);
+	}
 	return 0;
 }
 
@@ -104,7 +104,7 @@ void child_task(void *tmp){
 	if(servhost == NULL) {
 		endwin();
 		perror("failed to conversion to IP address.");
-        exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 	memset(&server, 0, sizeof(server));
 	server.sin_family = AF_INET;
@@ -114,13 +114,13 @@ void child_task(void *tmp){
 	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		endwin();
 		perror("failed to create a socket."); //check if socket is created
-        exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
 	if ( connect(s, (struct sockaddr *)&server, sizeof(server)) == -1) {
 		endwin();
 		perror("failed to connect."); //check connection
-        exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}	
 
 	sprintf(send_buf, "GET %s HTTP/1.0\r\n", path);
@@ -162,21 +162,21 @@ void child_task(void *tmp){
 	}
 	close(fd);
 	close(s);
-    f[id] = 0;
+	f[id] = 0;
 	pthread_exit((void *) 0);
 }
 
 
 int main(int argc, char *argv[]){
-    initscr();
-    clear();
-    if (argc != 2) {
+	initscr();
+	clear();
+	if (argc != 2) {
 		endwin();
 		perror("Input error.\n");
-        exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 
-    FILE *fp;
+	FILE *fp;
 	char buf[BUF_LEN];
  
 	fp = fopen(argv[1], "r");
@@ -185,34 +185,33 @@ int main(int argc, char *argv[]){
 	}
 	cnt = 0;
 	while (fgets(buf, BUF_LEN, fp) != NULL) {
-    	cnt++;
-  	}
-	// cnt--;
+		cnt++;
+	}
 	mvprintw(10, 0, "%d is cnt\n", cnt);
 	refresh();
-    for(int i = 0; i < cnt; i++){
-        memset(&c[i], 0, sizeof(c[i]));
-	}
-    fseek(fp, 0L, SEEK_SET);
-	for(int i = 0; i < cnt && fgets(c[i], sizeof(c[i]), fp) != NULL;i++){
-        f[i] = 1;
-    }
-	fclose(fp);
-    
-    pthread_t thread[cnt], pro;
-	struct arg tmp[cnt];
-    pthread_create(&pro, NULL, (void *)progress, NULL);
 	for(int i = 0; i < cnt; i++){
-        tmp[i].ch = c[i];
+		memset(&c[i], 0, sizeof(c[i]));
+	}
+	fseek(fp, 0L, SEEK_SET);
+	for(int i = 0; i < cnt && fgets(c[i], sizeof(c[i]), fp) != NULL;i++){
+		f[i] = 1;
+	}
+	fclose(fp);
+
+	pthread_t thread[cnt], pro;
+	struct arg tmp[cnt];
+	pthread_create(&pro, NULL, (void *)progress, NULL);
+	for(int i = 0; i < cnt; i++){
+		tmp[i].ch = c[i];
 		tmp[i].idx = i;
-        sleep(1);
-        if((pthread_create(&thread[i], NULL, (void *)child_task, (void *) &tmp[i]) != 0)){
+		sleep(1);
+		if((pthread_create(&thread[i], NULL, (void *)child_task, (void *) &tmp[i]) != 0)){
 			endwin();
 			perror("pthread_create error");
 			exit(EXIT_FAILURE);
 		}
 	}
-	sleep(3);
 	pthread_join(pro, NULL);
-    endwin();
+	sleep(3);
+	endwin();
 }
